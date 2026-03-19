@@ -1,0 +1,3 @@
+Criar um script à parte para gerar a string com a variável do grafo human readable, para o que o professor ao olhar para o código consiga ver o grafo.
+Neste momento o grafo é criado em tempo real a partir do ficheiro que tem as ligações.
+Criar também uma imagem do grafo para incluir depois no artefacto a entregar.
