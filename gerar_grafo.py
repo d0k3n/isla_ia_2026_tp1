@@ -1,7 +1,21 @@
 import argparse
 import csv
+import importlib.util
+import os
 from collections import defaultdict
 from pprint import pformat
+
+
+def load_grafo(py_path="grafo_distancia.py"):
+    """Carrega o grafo a partir de um ficheiro .py gerado anteriormente (e.g. grafo_distancia.py).
+    
+    Retorna o dicionário `grafo` definido nesse ficheiro, sem reconstruir do CSV.
+    """
+    abs_path = os.path.abspath(py_path)
+    spec = importlib.util.spec_from_file_location("_grafo_mod", abs_path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.grafo
 
 
 def build_grafo(csv_path, weight_col, undirected=True):
@@ -34,8 +48,8 @@ def main():
     )
     parser.add_argument(
         "--csv",
-        default="ia_tp1 - edges.csv",
-        help="Caminho do CSV (default: ia_tp1 - edges.csv)",
+        default="lista_edges.csv",
+        help="Caminho do CSV (default: lista_edges.csv)",
     )
     parser.add_argument(
         "--weight-col",
