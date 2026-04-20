@@ -19,8 +19,6 @@ Porto,Braga,54.1,53
 Porto,Viana do Castelo,74.1,67
 Santarém,Lisboa,82,73
 Santarém,Fátima,61,46
-Santarém,Leiria,79.7,59
-Santarém,Castelo Branco,158,108
 Santarém,Évora,164,112
 Setúbal,Évora,99.5,75
 Setúbal,Beja,143,109
@@ -30,19 +28,10 @@ Vila Real,Bragança,118,85
 Viseu,Aveiro,86.1,63
 Viseu,Porto,127,93
 Viseu,Vila Real,92.5,73
-Viseu,Bragança,197,140
 Vila Real,Braga,104,73
-Vila Real,Viana do Castelo,161,108
-Guarda,Coimbra,157,124
-Coimbra,Fátima,85.5,59
-Coimbra,Santarém,137,91
 Coimbra,Castelo Branco,135,100
 Leiria,Fátima,30.7,28
 Leiria,Aveiro,119,88
 Fátima,Castelo Branco,145,95
 Fátima,Portalegre,152,108
-Santarém,Setúbal,118,82
-Santarém,Beja,207,146
-Santarém,Faro,164,112
 Setúbal,Portalegre,308,185
-Évora,Faro,226,157

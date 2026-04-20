@@ -1,5 +1,5 @@
 """
-Comparar a performance dos algoritmos de procura num grafo
+Comparar a performance dos algoritmos de procura num grafo (custo em tempo).
 Ficheiro autónomo — inclui todas as dependências necessárias.
 """
 
@@ -14,12 +14,14 @@ from collections import defaultdict, deque
 # Configuração de dados
 # ---------------------------------------------------------------------------
 CSV_EDGES_PATH = "lista_edges.csv"
-WEIGHT_COL = "distance(km)"
+WEIGHT_COL = "time(min)"
+DIST_COL = "distance(km)"
+TIME_COL = "time(min)"
 R_TERRA_KM = 6371.0
 
 
 # ---------------------------------------------------------------------------
-# Grafo com pesos (distância em km)
+# Construção do grafo por tempo (min)
 # ---------------------------------------------------------------------------
 def build_grafo(csv_path, weight_col, undirected=True):
     """Build graph as node -> [[neighbor, weight], ...]."""
@@ -45,14 +47,37 @@ def build_grafo(csv_path, weight_col, undirected=True):
     }
 
 
-grafo_distancia = build_grafo(CSV_EDGES_PATH, WEIGHT_COL, undirected=True)
+def calcular_velocidade_media_kmh(csv_path, dist_col=DIST_COL, time_col=TIME_COL):
+    """
+    Calcula velocidade média global (km/h) a partir das arestas do dataset.
+
+    Usa média ponderada por tempo: soma(distâncias) / soma(tempos em horas).
+    """
+    total_dist_km = 0.0
+    total_horas = 0.0
+
+    with open(csv_path, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            d = float(row[dist_col])
+            t_min = float(row[time_col])
+            if t_min <= 0:
+                continue
+            total_dist_km += d
+            total_horas += t_min / 60.0
+
+    if total_horas <= 0:
+        return None
+    return total_dist_km / total_horas
+
+
+grafo_tempo = build_grafo(CSV_EDGES_PATH, WEIGHT_COL, undirected=True)
+VELOCIDADE_MEDIA_KMH = calcular_velocidade_media_kmh(CSV_EDGES_PATH)
 
 
 # ---------------------------------------------------------------------------
-# Heurística Haversine (km) a partir de cidades.csv
+# Heurística temporal baseada em Haversine e velocidade média
 # ---------------------------------------------------------------------------
-
-
 def _parse_grau(s):
     t = s.strip().replace("−", "-")
     for ch in ("∘", "°", "º"):
@@ -85,13 +110,26 @@ def haversine_km(lat1, lon1, lat2, lon2):
     return R_TERRA_KM * c
 
 
-def heuristica(no, destino):
+def heuristica_tempo_estimada(no, destino):
+    """
+    Estima tempo mínimo em minutos pela distância em linha reta e velocidade média.
+
+    Nota: esta heurística pode não ser estritamente admissível em todos os casos,
+    porque depende da calibração da velocidade média global.
+    """
+    if no not in COORDS or destino not in COORDS:
+        return 0.0
+
+    if VELOCIDADE_MEDIA_KMH is None or VELOCIDADE_MEDIA_KMH <= 0:
+        return 0.0
+
     lat1, lon1 = COORDS[no]
     lat2, lon2 = COORDS[destino]
-    return haversine_km(lat1, lon1, lat2, lon2)
+    dist_km = haversine_km(lat1, lon1, lat2, lon2)
+    return (dist_km / VELOCIDADE_MEDIA_KMH) * 60.0
 
 
-_falta = sorted(n for n in grafo_distancia if n not in COORDS)
+_falta = sorted(n for n in grafo_tempo if n not in COORDS)
 if _falta:
     print("Aviso: cidades no grafo sem coordenadas em cidades.csv:", ", ".join(_falta))
 
@@ -99,8 +137,7 @@ if _falta:
 # ---------------------------------------------------------------------------
 # Algoritmos de procura
 # ---------------------------------------------------------------------------
-
-def distancia_percorrida_km(grafo, caminho):
+def custo_percorrido_min(grafo, caminho):
     """Soma dos pesos das arestas ao longo da sequência de cidades no caminho."""
     if not caminho or len(caminho) < 2:
         return None
@@ -252,10 +289,9 @@ def procura_a_star(grafo, inicial, destino, heuristica):
 # ---------------------------------------------------------------------------
 # Comparação interativa
 # ---------------------------------------------------------------------------
-
 def comparar(inicial, destino, grafo=None):
     if grafo is None:
-        grafo = grafo_distancia
+        grafo = grafo_tempo
 
     algoritmos = [
         ("Resultado de Procura em extensão (BFS)", procura_extensao, False),
@@ -267,36 +303,41 @@ def comparar(inicial, destino, grafo=None):
 
     for nome, algoritmo, com_heuristica in algoritmos:
         if com_heuristica:
-            caminho, nos_expandidos, tempo, num_nos_expandidos = medir_tempo_e_nos_expandidos(
-                algoritmo, grafo, inicial, destino, heuristica
+            caminho, nos_expandidos, tempo_execucao, num_nos_expandidos = medir_tempo_e_nos_expandidos(
+                algoritmo, grafo, inicial, destino, heuristica_tempo_estimada
             )
         else:
-            caminho, nos_expandidos, tempo, num_nos_expandidos = medir_tempo_e_nos_expandidos(
+            caminho, nos_expandidos, tempo_execucao, num_nos_expandidos = medir_tempo_e_nos_expandidos(
                 algoritmo, grafo, inicial, destino
             )
 
-        d_km = distancia_percorrida_km(grafo, caminho)
-        if d_km is None:
-            linha_dist = "Distância percorrida (km): —"
-        elif math.isnan(d_km):
-            linha_dist = "Distância percorrida (km): — (caminho não coincide com arestas do grafo)"
+        custo_min = custo_percorrido_min(grafo, caminho)
+        if custo_min is None:
+            linha_custo = "Tempo percorrido (min): —"
+        elif math.isnan(custo_min):
+            linha_custo = "Tempo percorrido (min): — (caminho não coincide com arestas do grafo)"
         else:
-            linha_dist = f"Distância percorrida (km): {d_km:.2f}"
+            linha_custo = f"Tempo percorrido (min): {custo_min:.2f}"
 
         print(f"\n{nome}")
         print(f"Caminho: {caminho}")
-        print(linha_dist)
+        print(linha_custo)
         print(f"Nos Expandidos: {nos_expandidos}")
         print(f"Numero de Nos Expandidos: {num_nos_expandidos}")
-        print(f"Tempo de Execução: {tempo:.6f} segundos")
+        print(f"Tempo de Execução: {tempo_execucao:.6f} segundos")
 
 
 def main():
-    grafo = grafo_distancia
+    grafo = grafo_tempo
     cidades = sorted(grafo.keys())
 
-    print("Comparar a performance dos algoritmos de procura num grafo")
+    print("Comparar a performance dos algoritmos de procura num grafo (tempo em minutos)")
     print("Cidades disponíveis:", ", ".join(cidades))
+
+    if VELOCIDADE_MEDIA_KMH is None:
+        print("Velocidade média indisponível; heurística temporal vai usar fallback h=0.")
+    else:
+        print(f"Velocidade média estimada (km/h): {VELOCIDADE_MEDIA_KMH:.2f}")
 
     # Modo standalone sem Jupyter
     inicial = input(f"Cidade inicial [{cidades[0]}]: ").strip() or cidades[0]
@@ -308,6 +349,7 @@ def main():
         raise ValueError(f"Cidade destino inválida: {destino}")
 
     comparar(inicial, destino, grafo)
+
 
 if __name__ == "__main__":
     main()
