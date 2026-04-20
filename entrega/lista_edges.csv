@@ -1,0 +1,37 @@
+source,target,distance(km),time(min)
+Aveiro,Porto,76,67
+Beja,Évora,80.4,73
+Castelo Branco,Guarda,94.7,65
+Coimbra,Viseu,94.3,94
+Coimbra,Aveiro,66.1,59
+Coimbra,Porto,124,92
+Évora,Portalegre,103,87
+Faro,Beja,147,110
+Guarda,Viseu,76.5,61
+Guarda,Bragança,176,126
+Leiria,Coimbra,74.5,60
+Lisboa,Setúbal,47.9,60
+Lisboa,Leiria,150,115
+Portalegre,Castelo Branco,94.7,75
+Portalegre,Santarém,165,116
+Porto,Vila Real,96.9,79
+Porto,Braga,54.1,53
+Porto,Viana do Castelo,74.1,67
+Santarém,Lisboa,82,73
+Santarém,Fátima,61,46
+Santarém,Évora,164,112
+Setúbal,Évora,99.5,75
+Setúbal,Beja,143,109
+Setúbal,Faro,244,147
+Viana do Castelo,Braga,61.1,48
+Vila Real,Bragança,118,85
+Viseu,Aveiro,86.1,63
+Viseu,Porto,127,93
+Viseu,Vila Real,92.5,73
+Vila Real,Braga,104,73
+Coimbra,Castelo Branco,135,100
+Leiria,Fátima,30.7,28
+Leiria,Aveiro,119,88
+Fátima,Castelo Branco,145,95
+Fátima,Portalegre,152,108
+Setúbal,Portalegre,308,185
